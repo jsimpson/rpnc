@@ -6,5 +6,5 @@ Dependencies:
 
 ## Compilation
 
-cc -std=c99 -Wall rpnc.c mpc.c -ledit -lm -o rpnc
+cc -std=c99 -Wall rpnc.c mpc.c -ledit -lm -o bin/rpnc
 
