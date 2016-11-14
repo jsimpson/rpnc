@@ -8,54 +8,54 @@ typedef struct
     int type;
     long num;
     int err;
-} lval;
+} rpn_val;
 
 enum
 {
-    LVAL_NUM,
-    LVAL_ERR
+    RVAL_NUM,
+    RVAL_ERR
 };
 
 enum
 {
-    LERR_DIV_ZERO,
-    LERR_BAD_OP,
-    LERR_BAD_NUM
+    RERR_DIV_ZERO,
+    RERR_BAD_OP,
+    RERR_BAD_NUM
 };
 
-lval lval_num(long x)
+rpn_val rpn_val_num(long x)
 {
-    lval v;
-    v.type = LVAL_NUM;
+    rpn_val v;
+    v.type = RVAL_NUM;
     v.num = x;
     return v;
 }
 
-lval lval_err(int x)
+rpn_val rpn_val_err(int x)
 {
-    lval v;
-    v.type = LVAL_ERR;
+    rpn_val v;
+    v.type = RVAL_ERR;
     v.err = x;
     return v;
 }
 
-void lval_print(lval v)
+void rpn_val_print(rpn_val v)
 {
     switch (v.type)
     {
-        case LVAL_NUM:
+        case RVAL_NUM:
             printf("%li\n", v.num);
             break;
-        case LVAL_ERR:
-            if (v.err == LERR_DIV_ZERO)
+        case RVAL_ERR:
+            if (v.err == RERR_DIV_ZERO)
             {
                 printf("Error: Division by zero.\n");
             }
-            else if (v.err == LERR_BAD_OP)
+            else if (v.err == RERR_BAD_OP)
             {
                 printf("Error: Invalid operator.\n");
             }
-            else if (v.err == LERR_BAD_NUM)
+            else if (v.err == RERR_BAD_NUM)
             {
                 printf("Error: Invalid number.\n");
             }
@@ -63,53 +63,53 @@ void lval_print(lval v)
     }
 }
 
-lval eval_op(lval x, char *op, lval y)
+rpn_val eval_op(rpn_val x, char *op, rpn_val y)
 {
-    if (x.type == LVAL_ERR)
+    if (x.type == RVAL_ERR)
     {
         return x;
     }
 
-    if (y.type == LVAL_ERR)
+    if (y.type == RVAL_ERR)
     {
         return y;
     }
 
     if (strcmp(op, "+") == 0)
     {
-        return lval_num(x.num + y.num);
+        return rpn_val_num(x.num + y.num);
     }
 
     if (strcmp(op, "-") == 0)
     {
-        return lval_num(x.num - y.num);
+        return rpn_val_num(x.num - y.num);
     }
 
     if (strcmp(op, "*") == 0)
     {
-        return lval_num(x.num * y.num);
+        return rpn_val_num(x.num * y.num);
     }
 
     if (strcmp(op, "/") == 0)
     {
-        return (y.num == 0) ? lval_err(LERR_DIV_ZERO) : lval_num(x.num / y.num);
+        return (y.num == 0) ? rpn_val_err(RERR_DIV_ZERO) : rpn_val_num(x.num / y.num);
     }
 
-    return lval_err(LERR_BAD_OP);
+    return rpn_val_err(RERR_BAD_OP);
 }
 
 
-lval eval(mpc_ast_t *t)
+rpn_val eval(mpc_ast_t *t)
 {
     if (strstr(t->tag, "number"))
     {
         errno = 0;
         long x = strtol(t->contents, NULL, 10);
-        return errno != ERANGE ? lval_num(x) : lval_err(LERR_BAD_NUM);
+        return errno != ERANGE ? rpn_val_num(x) : rpn_val_err(RERR_BAD_NUM);
     }
 
     char *op = t->children[1]->contents;
-    lval x = eval(t->children[2]);
+    rpn_val x = eval(t->children[2]);
 
     int i = 3;
     while (strstr(t->children[i]->tag, "expr"))
@@ -149,8 +149,8 @@ int main(int argc, char **argv)
         mpc_result_t r;
         if (mpc_parse("<stdin>", input, Rpnc, &r))
         {
-            lval result = eval(r.output);
-            lval_print(result);
+            rpn_val result = eval(r.output);
+            rpn_val_print(result);
             mpc_ast_delete(r.output);
         }
         else
